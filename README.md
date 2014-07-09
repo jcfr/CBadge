@@ -18,4 +18,4 @@ To add badges to your README.md for you GitHub repository, include them with the
 ![Coverage Status](http://cbadge-instance/CDashProjectName/coverage)
 ```
 
-Just replace `CDashProjectName` with your project, like `VTK`, `ITK`, `CMake`, `Remus`, etc.
+Just replace `CDashProjectName` with your project, like `VTK`, `Insight`, `CMake`, `Remus`, etc.
