@@ -18,6 +18,33 @@ function sigFigs(n, sig) {
     return Math.round(n * mult) / mult;
 }
 
+//Get action on a per-branch or tag basis
+router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
+    var request = require('request');
+    var badge = require('../helpers/badge');
+    var authenticate = require('../helpers/authenticate');
+    var packageJSON = require('../package.json');
+
+    var options = {
+        url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/commits/'+req.params.tag,
+        headers: {
+            'User-Agent': 'CBadge/'+packageJSON.version,
+            'Authorization': authenticate()
+        }
+    };
+
+    request(options, function (error, response, body) {
+        if(error){
+            res.send(500);
+        }else{
+            console.log(body);
+            var sha = JSON.parse(body).sha;
+
+            res.redirect('/'+req.params.project+'/'+req.params.action+'/'+sha);
+        }
+    })
+});
+
 //Get coverage on a per-revision basis
 router.get('/:project/coverage/:revision', function(req, res) {
     var request = require('request');
@@ -59,6 +86,7 @@ router.get('/:project/coverage/:revision', function(req, res) {
     });
 });
 
+//Get build status on a per-revision basis
 router.get('/:project/build/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
@@ -97,11 +125,11 @@ router.get('/:project/build/:revision', function(req, res) {
     });
 });
 
+
+//Get configure status on a per-revision basis
 router.get('/:project/configure/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
-
-    //console.log('http://open.cdash.org/api/?method=build&task=checkinsdefects&project='+req.params.project);
 
     request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
         if (error){
@@ -137,6 +165,8 @@ router.get('/:project/configure/:revision', function(req, res) {
     });
 });
 
+
+//Get test status on a per-revision basis
 router.get('/:project/test/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
