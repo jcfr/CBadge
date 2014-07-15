@@ -7,126 +7,174 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  res.send(404);
+  //Blank home page
+  res.send(204);
 });
 
-router.get('/:project/coverage', function(req, res) {
-    var request = require('request');
-    var badge = require('../helpers/badge');
-
-    request('http://open.cdash.org/api/?method=coverage&task=directory&project='+req.params.project, function (error, response, body) {
-        if (error){
-            res.send(500);
-        }else{
-            var coverage = JSON.parse(body);
-
-            var linesTested = 0;
-            var linesUntested = 0;
-
-            for(var project in coverage){
-                linesTested += recursiveLinesTested(coverage[project]);
-                //console.log('loct: '+linesTested);
-                linesUntested += recursiveLinesUnested(coverage[project]);
-                //console.log('locut: '+linesUntested);
-            }
-
-            var percent = (linesTested)/(linesTested+linesUntested)*100;
-            percent = sigFigs(percent, 3);
-
-            //console.log(linesTested+'/('+linesTested+'+'+linesUntested+') = '+percent);
-
-            if(isNaN(percent)){
-                res.redirect(badge('coverage', 'unknown', 'lightgrey'));
-            }else if(percent < 80){
-                res.redirect(badge('coverage', percent.toString()+'%', 'green'));
-            }else if(percent < 60){
-                res.redirect(badge('coverage', percent.toString()+'%', 'yellow'));
-            }else{
-                res.redirect(badge('coverage', percent.toString()+'%', 'red'));
-            }
-        }
-    });
-});
-
-function recursiveLinesTested(directory){
-    var linesTested = 0;
-    for(var property in directory){
-        if(property == 'loctested'){
-            linesTested += Number(directory[property]);
-        }else if(typeof directory[property] == 'object'){
-            //console.log('entering '+property);
-            linesTested += recursiveLinesTested(directory[property]);
-            //console.log('left '+property);
-        }
-    }
-    return linesTested;
-}
-
-function recursiveLinesUnested(directory){
-    var linesUntested = 0;
-    for(var property in directory){
-        if(property == 'locuntested'){
-            linesUntested += Number(directory[property]);
-        }else if(typeof directory[property] == 'object'){
-            //console.log('entering '+property);
-            linesUntested += recursiveLinesUnested(directory[property]);
-            //console.log('left '+property);
-        }
-    }
-    return linesUntested;
-}
-
+//Rounds number n to number of significant figures sig.
 function sigFigs(n, sig) {
     var mult = Math.pow(10,
         sig - Math.floor(Math.log(n) / Math.LN10) - 1);
     return Math.round(n * mult) / mult;
 }
 
-router.get('/:project/build', function(req, res) {
+//Get coverage on a per-revision basis
+router.get('/:project/coverage/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
 
-    //console.log('http://open.cdash.org/api/?method=build&task=checkinsdefects&project='+req.params.project);
-
-    request('http://open.cdash.org/api/?method=build&task=checkinsdefects&project='+req.params.project, function (error, response, body) {
+    request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
         if (error){
             res.send(500);
         }else{
-            var latestBuild = JSON.parse(body);
-            var errors = latestBuild[0].builderrors;
-            var warnings = latestBuild[0].buildwarnings;
+            var coverage = JSON.parse(body);
+            var loctested = 0;
+            var locuntested = 0;
+            var buildswithcoverage = 0;
+            for(var i = 0; i < coverage.length; i++){
+                if( coverage[i].loctested != null &&
+                    Number(coverage[i].loctested) &&
+                    coverage[i].locuntested != null &&
+                    Number(coverage[i].locuntested)){
 
-            if(Number(errors) > 0){
-                res.redirect(badge('build', 'failing', 'red'));
-            }else if(Number(warnings) > 0){
-                res.redirect(badge('build', 'warnings', 'yellow'));
+                    loctested += coverage[i].loctested;
+                    locuntested += coverage[i].locuntested;
+                }
+            }
+            if(loctested + locuntested > 0){
+                var percent = loctested/(loctested+locuntested);
+                percent = sigFigs(percent, 3);
+                percent *= 100;
+                if(percent > 80){
+                    res.redirect(badge('coverage', percent+'%', 'brightgreen'));
+                }else if(percent > 60){
+                    res.redirect(badge('coverage', percent+'%', 'yellow'));
+                }else{
+                    res.redirect(badge('coverage', percent+'%', 'red'));
+                }
             }else{
-                res.redirect(badge('build', 'passing', 'green'));
+                res.redirect(badge('coverage', 'unknown', 'lightgrey'));
             }
         }
     });
 });
 
-router.get('/:project/test', function(req, res) {
+router.get('/:project/build/:revision', function(req, res) {
+    var request = require('request');
+    var badge = require('../helpers/badge');
+
+    request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
+        if (error){
+            res.send(500);
+        }else{
+            var builds = JSON.parse(body);
+            var buildErrors = 0;
+            var buildWarnings = 0;
+
+            if(builds.length > 0){
+                for(var i = 0; i < builds.length; i++){
+                    if(Number(builds[i].builderrors)){
+                        buildErrors += Number(builds[i].builderrors);
+                    }
+                    if(Number(builds[i].buildwarnings)){
+                        buildWarnings += Number(builds[i].buildwarnings);
+                    }
+                }
+
+                if(Number(buildErrors) > 0){
+                    res.redirect(badge('build', buildErrors+' errors', 'red'));
+                }else if(Number(buildWarnings) > 0){
+                    res.redirect(badge('build', buildWarnings+' warnings', 'yellow'));
+                }else{
+                    res.redirect(badge('build', 'passing', 'brightgreen'));
+                }
+            }else{
+                res.redirect(badge('build', 'unknown', 'lightgrey'));
+            }
+
+
+        }
+    });
+});
+
+router.get('/:project/configure/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
 
     //console.log('http://open.cdash.org/api/?method=build&task=checkinsdefects&project='+req.params.project);
 
-    request('http://open.cdash.org/api/?method=build&task=checkinsdefects&project='+req.params.project, function (error, response, body) {
+    request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
         if (error){
             res.send(500);
         }else{
-            var latestBuild = JSON.parse(body);
-            var testsNotRun = latestBuild[0].testnotrun;
-            var failures = latestBuild[0].testfailed;
+            var builds = JSON.parse(body);
+            var configureErrors = 0;
+            var configureWarnings = 0;
 
-            if(Number(failures) > 0){
-                res.redirect(badge('tests', 'failing', 'red'));
-            }else if(Number(testsNotRun) > 0){
-                res.redirect(badge('tests', 'unknown', 'yellow'));
+            if(builds.length > 0){
+                for(var i = 0; i < builds.length; i++){
+                    if(Number(builds[i].configureerrors)){
+                        configureErrors += Number(builds[i].configureerrors);
+                    }
+                    if(Number(builds[i].configurewarnings)){
+                        configureWarnings += Number(builds[i].configurewarnings);
+                    }
+                }
+
+                if(Number(configureErrors) > 0){
+                    res.redirect(badge('configure', configureErrors+' errors', 'red'));
+                }else if(Number(configureWarnings) > 0){
+                    res.redirect(badge('configure', configureWarnings+' warnings', 'yellow'));
+                }else{
+                    res.redirect(badge('configure', 'passing', 'brightgreen'));
+                }
             }else{
-                res.redirect(badge('tests', 'passing', 'green'));
+                res.redirect(badge('build', 'unknown', 'lightgrey'));
+            }
+
+
+        }
+    });
+});
+
+router.get('/:project/test/:revision', function(req, res) {
+    var request = require('request');
+    var badge = require('../helpers/badge');
+
+    request('http://trunk.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
+        if (error){
+            res.send(500);
+        }else{
+            var builds = JSON.parse(body);
+            var testsPassed = 0;
+            var testsFailed = 0;
+            var testsNotRun = 0;
+
+            for(var i = 0; i < builds.length; i++){
+                if(Number(builds[i].testpassed)){
+                    testsPassed += Number(builds[i].testpassed);
+                }
+                if(Number(builds[i].testfailed)){
+                    testsFailed += Number(builds[i].testfailed);
+                }
+                if(Number(builds[i].testnotrun)){
+                    testsNotRun += Number(builds[i].testnotrun);
+                }
+            }
+
+            if(testsPassed+testsNotRun+testsFailed > 0){
+                var percent = (testsPassed)/(testsPassed+testsNotRun+testsFailed);
+                percent = sigFigs(percent, 3);
+                percent *= 100;
+                if(percent > 80){
+                    res.redirect(badge('tests', percent+'%', 'brightgreen'));
+                }else if (percent > 60){
+                    res.redirect(badge('tests', percent+'%', 'yellow'));
+                }else{
+                    res.redirect(badge('tests', percent+'%', 'red'));
+                }
+            }else{
+                res.redirect(badge('tests', 'unknown', 'lightgrey'));
             }
         }
     });
