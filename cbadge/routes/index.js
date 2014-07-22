@@ -58,7 +58,7 @@ router.post('/:project/pullRequests/', function(req, res) {
 
     github.authenticate({
         type: 'basic',
-        username: CBadge,
+        username: 'CBadge',
         password: process.env.CBADGE_PASSWORD
     })
 
@@ -97,6 +97,7 @@ router.post('/:project/pullRequests/', function(req, res) {
         number: number,
         body: comment
     });
+    res.send(200);
 });
 
 
