@@ -1,10 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-// var badge = require('../helpers/badge');
-// var request = require('request');
-// var cheerio = require('cheerio');
-
 /* GET home page. */
 router.get('/', function(req, res) {
   //Blank home page
@@ -18,14 +14,10 @@ function sigFigs(n, sig) {
     return Math.round(n * mult) / mult;
 }
 
+
 //Get action on a per-branch or tag basis
 router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
-    var request = require('request');
-    var badge = require('../helpers/badge');
-    var authenticate = require('../helpers/authenticate');
-    var packageJSON = require('../package.json');
-
-    var options = {
+        var options = {
         url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/commits/'+req.params.tag,
         headers: {
             'User-Agent': 'CBadge/'+packageJSON.version,
@@ -44,6 +36,57 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
         }
     })
 });
+
+
+//To recieve webhooks data on
+router.post('/:project/pullRequests/', function(req, res) {
+    var request = require('request');
+    var badge = require('../helpers/badge');
+    var authenticate = require('../helpers/authenticate');
+    var packageJSON = require('../package.json');
+
+    //Ignore closing of pull requests
+    if(req.body.action == 'closed'){
+        return;
+    }
+
+    //Getting merge SHA
+    var mergeSHA = req.body.pull_request.merge_commit_sha;
+
+    //If no merge SHA, then ignore
+    if(!mergeSHA || mergeSHA == null){
+        return;
+    }
+
+    //Getting base SHA
+    var baseSHA = req.body.pull_request.base.sha;
+
+    //Getting repository full name and number
+    var fullRepoName = req.body.repository.full_name;
+    var number = req.body.number;
+
+    //Generating comment to make
+    var cbadgeURL = process.env.CBADGE_URL;
+    var comment = ['| Base ('+baseSHA.substring(0, 7)+') | Merge ('+mergeSHA.substring(0, 7)+')|',
+        '\n|:---:|:---:|',
+        '\n|![Base Coverage]('+cbadgeURL+'/'+req.params.project+'/coverage/'+baseSHA+')|![Merge Coverage]('+cbadgeURL+'/'+req.params.project+'/coverage/'+mergeSHA+')',
+        '\n|![Base Test]('+cbadgeURL+'/'+req.params.project+'/test/'+baseSHA+')|![Merge Test]('+cbadgeURL+'/'+req.params.project+'/test/'+mergeSHA+')',
+        '\n|![Base Build]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')|![Merge Build]('+cbadgeURL+'/'+req.params.project+'/build/'+mergeSHA+')',
+        '\n|![Base Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')|![Merge Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+mergeSHA+')'].join();
+
+    var options = {
+        url: 'https://api.github.com/repos/'+fullRepoName+'/issues/'+req.body.number+'/comments',
+        headers: {
+            'User-Agent': 'CBadge/'+packageJSON.version,
+            'Authorization': authenticate()
+        },
+        body: {
+            body: comment
+        }
+    };
+    request.post(options);
+});
+
 
 //Get coverage on a per-revision basis
 router.get('/:project/coverage/:revision', function(req, res) {
@@ -85,6 +128,7 @@ router.get('/:project/coverage/:revision', function(req, res) {
         }
     });
 });
+
 
 //Get build status on a per-revision basis
 router.get('/:project/build/:revision', function(req, res) {
