@@ -47,6 +47,7 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
 
 //To recieve webhooks data on
 router.post('/:project/pullRequests/', function(req, res) {
+    console.log('recieved payload');
     //Importing GitHubAPI library
     var GitHubApi = require('github');
     var github = new GitHubApi({
