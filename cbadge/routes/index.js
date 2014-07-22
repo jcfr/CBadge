@@ -11,7 +11,7 @@ router.get('/', function(req, res) {
 function sigFigs(n, sig) {
     var mult = Math.pow(10,
         sig - Math.floor(Math.log(n) / Math.LN10) - 1);
-    return Math.round(n * mult) / mult;
+    return (Math.round(n * mult) / mult).toFixed(2);
 }
 
 
@@ -117,15 +117,20 @@ router.get('/:project/coverage/:revision', function(req, res) {
                     Number(coverage[i].loctested) &&
                     coverage[i].locuntested != null &&
                     Number(coverage[i].locuntested)){
+                    console.log('loc '+coverage[i].loctested);
+                    console.log('locut '+coverage[i].locuntested);
 
-                    loctested += coverage[i].loctested;
-                    locuntested += coverage[i].locuntested;
+                    loctested += Number(coverage[i].loctested);
+                    locuntested += Number(coverage[i].locuntested);
                 }
             }
+            console.log('total locuntested '+locuntested);
+            console.log('total loctested '+loctested);
             if(loctested + locuntested > 0){
                 var percent = loctested/(loctested+locuntested);
-                percent = sigFigs(percent, 3);
                 percent *= 100;
+                console.log(percent);
+                percent = sigFigs(percent, 3);
                 if(percent > 80){
                     res.redirect(badge('coverage', percent+'%', 'brightgreen'));
                 }else if(percent > 60){
@@ -226,7 +231,7 @@ router.get('/:project/test/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
 
-    request('http://trunk.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
+    request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
         if (error){
             res.send(500);
         }else{
@@ -249,8 +254,8 @@ router.get('/:project/test/:revision', function(req, res) {
 
             if(testsPassed+testsNotRun+testsFailed > 0){
                 var percent = (testsPassed)/(testsPassed+testsNotRun+testsFailed);
-                percent = sigFigs(percent, 3);
                 percent *= 100;
+                percent = sigFigs(percent, 3);
                 if(percent > 80){
                     res.redirect(badge('tests', percent+'%', 'brightgreen'));
                 }else if (percent > 60){
