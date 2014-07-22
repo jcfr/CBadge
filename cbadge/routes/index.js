@@ -1,10 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-// var badge = require('../helpers/badge');
-// var request = require('request');
-// var cheerio = require('cheerio');
-
 /* GET home page. */
 router.get('/', function(req, res) {
   //Blank home page
@@ -151,8 +147,6 @@ router.get('/:project/build/:revision', function(req, res) {
 router.get('/:project/configure/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
-
-    //console.log('http://open.cdash.org/api/?method=build&task=checkinsdefects&project='+req.params.project);
 
     request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
         if (error){
