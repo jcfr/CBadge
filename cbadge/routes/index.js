@@ -17,11 +17,18 @@ function sigFigs(n, sig) {
 
 //Get action on a per-branch or tag basis
 router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
-        var options = {
+    var request = require('request');
+    var badge = require('../helpers/badge');
+    var authenticate = require('../helpers/authenticate');
+    var packageJSON = require('../package.json');
+
+    console.log(authenticate());
+
+    var options = {
         url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/commits/'+req.params.tag,
         headers: {
-            'User-Agent': 'CBadge/'+packageJSON.version,
-            'Authorization': authenticate()
+            'User-Agent': 'CBadge/'+packageJSON.version
+            //Don't need to authorize; publicly available
         }
     };
 
@@ -40,10 +47,19 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
 
 //To recieve webhooks data on
 router.post('/:project/pullRequests/', function(req, res) {
-    var request = require('request');
-    var badge = require('../helpers/badge');
-    var authenticate = require('../helpers/authenticate');
-    var packageJSON = require('../package.json');
+    //Importing GitHubAPI library
+    var GitHubApi = require('github');
+    var github = new GitHubApi({
+        version: '3.0.0',
+        protocol: 'https',
+        timeout: 5000
+    });
+
+    github.authenticate({
+        type: 'basic',
+        username: CBadge,
+        password: process.env.CBADGE_PASSWORD
+    })
 
     //Ignore closing of pull requests
     if(req.body.action == 'closed'){
@@ -74,17 +90,12 @@ router.post('/:project/pullRequests/', function(req, res) {
         '\n|![Base Build]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')|![Merge Build]('+cbadgeURL+'/'+req.params.project+'/build/'+mergeSHA+')',
         '\n|![Base Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')|![Merge Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+mergeSHA+')'].join();
 
-    var options = {
-        url: 'https://api.github.com/repos/'+fullRepoName+'/issues/'+req.body.number+'/comments',
-        headers: {
-            'User-Agent': 'CBadge/'+packageJSON.version,
-            'Authorization': authenticate()
-        },
-        body: {
-            body: comment
-        }
-    };
-    request.post(options);
+    github.issues.createComment({
+        user: req.body.repository.owner.login,
+        repo: req.body.repository.name,
+        number: number,
+        body: comment
+    });
 });
 
 
