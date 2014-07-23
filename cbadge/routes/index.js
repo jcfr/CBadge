@@ -22,8 +22,6 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
     var authenticate = require('../helpers/authenticate');
     var packageJSON = require('../package.json');
 
-    console.log(authenticate());
-
     var options = {
         url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/commits/'+req.params.tag,
         headers: {
@@ -36,68 +34,96 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
         if(error){
             res.send(500);
         }else{
-            console.log(body);
             var sha = JSON.parse(body).sha;
 
             res.redirect('/'+req.params.project+'/'+req.params.action+'/'+sha);
         }
-    })
+    });
 });
 
 
-//To recieve webhooks data on
-router.post('/:project/pullRequests/', function(req, res) {
-    console.log('recieved payload');
-    //Importing GitHubAPI library
-    var GitHubApi = require('github');
-    var github = new GitHubApi({
-        version: '3.0.0',
-        protocol: 'https',
-        timeout: 5000
+//Notify CBadge to comment on a pull request for information, or update previous comment.
+router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res) {
+    var request = require('request');
+    var packageJSON = require('../package.json');
+
+    //Query GitHub about this pull request
+    var options = {
+        url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/pulls/'+req.params.number,
+        headers: {
+            'User-Agent': 'CBadge/'+packageJSON.version
+        }
+    };
+
+    //Get base SHA and merge SHA
+    request(options, function (error, response, body) {
+        if(error){
+            res.send(500);
+        }else{
+            var pullRequest = JSON.parse(body);
+            var baseSHA = pullRequest.base.sha;
+            var headSHA = pullRequest.head.sha;
+            var testingSHA = req.params.sha;
+
+            //Importing GitHubAPI library
+            var GitHubApi = require('github');
+            var github = new GitHubApi({
+                version: '3.0.0',
+                protocol: 'https',
+                timeout: 5000
+            });
+
+            github.authenticate({
+                type: 'basic',
+                username: 'CBadge',
+                password: process.env.CBADGE_PASSWORD
+            });
+
+            //Generating comment to make
+            var cbadgeURL = process.env.CBADGE_URL;
+            var comment = '| Base ('+baseSHA.substring(0, 7)+') | Merged ('+testingSHA.substring(0, 7)+')|\n|:---:|:---:|\n|[![Base Coverage Status]('+cbadgeURL+'/'+req.params.project+'/coverage/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Coverage Status]('+cbadgeURL+'/'+req.params.project+'/coverage/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Testing Status]('+cbadgeURL+'/'+req.params.project+'/test/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status]('+cbadgeURL+'/'+req.params.project+'/test/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Build Status]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status]('+cbadgeURL+'/'+req.params.project+'/build/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Configure Status]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status]('+cbadgeURL+'/'+req.params.project+'/configure/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)';
+
+            //Now to decide if we need to edit our last comment or make a new one
+            //Were we the last one to make a commit on this pull request?
+            request({
+                url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/issues/'+req.params.number+'/comments',
+                headers: {
+                    'User-Agent': 'CBadge/'+packageJSON.version
+                }
+            }, function (error, reponse, body) {
+                if(error){
+                    res.send(500);
+                    return;
+                }
+                var comments = JSON.parse(body);
+                if(comments[comments.length-1].user.login == 'CBadge'){
+                    //Yes, we were.  Now let's edit our comment.
+                    console.log('we were the last commenters');
+                    github.issues.editComment({
+                        user: req.params.owner,
+                        repo: req.params.repo,
+                        number: req.params.number,
+                        id: comments[comments.length-1].id,
+                        body: comment
+                    });
+                    console.log('successfully edited comment');
+                    res.send(200);
+                    return;
+                }else{
+                    console.log('we were not the last commenters');
+                    github.issues.createComment({
+                        user: req.params.owner,
+                        repo: req.params.repo,
+                        number: req.params.number,
+                        body: comment
+                    });
+                    console.log('successfully created comment');
+                    res.send(200);
+                    return;
+                }
+            });
+        }
     });
-
-    github.authenticate({
-        type: 'basic',
-        username: 'CBadge',
-        password: process.env.CBADGE_PASSWORD
-    })
-
-    //Ignore closing of pull requests
-    if(req.body.action == 'closed'){
-        return;
-    }
-
-    //Getting merge SHA
-    var mergeSHA = req.body.pull_request.merge_commit_sha;
-
-    //If no merge SHA, then ignore
-    if(!mergeSHA || mergeSHA == null){
-        return;
-    }
-
-    //Getting base SHA
-    var baseSHA = req.body.pull_request.base.sha;
-
-    //Getting repository full name and number
-    var fullRepoName = req.body.repository.full_name;
-    var number = req.body.number;
-
-    //Generating comment to make
-    var cbadgeURL = process.env.CBADGE_URL;
-    var comment = ['| Base ('+baseSHA.substring(0, 7)+') | Merge ('+mergeSHA.substring(0, 7)+')|',
-        '\n|:---:|:---:|',
-        '\n|![Base Coverage]('+cbadgeURL+'/'+req.params.project+'/coverage/'+baseSHA+')|![Merge Coverage]('+cbadgeURL+'/'+req.params.project+'/coverage/'+mergeSHA+')',
-        '\n|![Base Test]('+cbadgeURL+'/'+req.params.project+'/test/'+baseSHA+')|![Merge Test]('+cbadgeURL+'/'+req.params.project+'/test/'+mergeSHA+')',
-        '\n|![Base Build]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')|![Merge Build]('+cbadgeURL+'/'+req.params.project+'/build/'+mergeSHA+')',
-        '\n|![Base Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')|![Merge Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+mergeSHA+')'].join();
-
-    github.issues.createComment({
-        user: req.body.repository.owner.login,
-        repo: req.body.repository.name,
-        number: number,
-        body: comment
-    });
-    res.send(200);
 });
 
 
@@ -119,19 +145,14 @@ router.get('/:project/coverage/:revision', function(req, res) {
                     Number(coverage[i].loctested) &&
                     coverage[i].locuntested != null &&
                     Number(coverage[i].locuntested)){
-                    console.log('loc '+coverage[i].loctested);
-                    console.log('locut '+coverage[i].locuntested);
 
                     loctested += Number(coverage[i].loctested);
                     locuntested += Number(coverage[i].locuntested);
                 }
             }
-            console.log('total locuntested '+locuntested);
-            console.log('total loctested '+loctested);
             if(loctested + locuntested > 0){
                 var percent = loctested/(loctested+locuntested);
                 percent *= 100;
-                console.log(percent);
                 percent = sigFigs(percent, 3);
                 if(percent > 80){
                     res.redirect(badge('coverage', percent+'%', 'brightgreen'));
