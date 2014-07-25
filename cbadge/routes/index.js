@@ -11,17 +11,22 @@ router.get('/', function(req, res) {
 function sigFigs(n, sig) {
     var mult = Math.pow(10,
         sig - Math.floor(Math.log(n) / Math.LN10) - 1);
-    return Math.round(n * mult) / mult;
+    return (Math.round(n * mult) / mult).toFixed(2);
 }
 
 
 //Get action on a per-branch or tag basis
 router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
-        var options = {
+    var request = require('request');
+    var badge = require('../helpers/badge');
+    var authenticate = require('../helpers/authenticate');
+    var packageJSON = require('../package.json');
+
+    var options = {
         url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/commits/'+req.params.tag,
         headers: {
-            'User-Agent': 'CBadge/'+packageJSON.version,
-            'Authorization': authenticate()
+            'User-Agent': 'CBadge/'+packageJSON.version
+            //Don't need to authorize; publicly available
         }
     };
 
@@ -29,62 +34,96 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
         if(error){
             res.send(500);
         }else{
-            console.log(body);
             var sha = JSON.parse(body).sha;
 
             res.redirect('/'+req.params.project+'/'+req.params.action+'/'+sha);
         }
-    })
+    });
 });
 
 
-//To recieve webhooks data on
-router.post('/:project/pullRequests/', function(req, res) {
+//Notify CBadge to comment on a pull request for information, or update previous comment.
+router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res) {
     var request = require('request');
-    var badge = require('../helpers/badge');
-    var authenticate = require('../helpers/authenticate');
     var packageJSON = require('../package.json');
 
-    //Ignore closing of pull requests
-    if(req.body.action == 'closed'){
-        return;
-    }
-
-    //Getting merge SHA
-    var mergeSHA = req.body.pull_request.merge_commit_sha;
-
-    //If no merge SHA, then ignore
-    if(!mergeSHA || mergeSHA == null){
-        return;
-    }
-
-    //Getting base SHA
-    var baseSHA = req.body.pull_request.base.sha;
-
-    //Getting repository full name and number
-    var fullRepoName = req.body.repository.full_name;
-    var number = req.body.number;
-
-    //Generating comment to make
-    var cbadgeURL = process.env.CBADGE_URL;
-    var comment = ['| Base ('+baseSHA.substring(0, 7)+') | Merge ('+mergeSHA.substring(0, 7)+')|',
-        '\n|:---:|:---:|',
-        '\n|![Base Coverage]('+cbadgeURL+'/'+req.params.project+'/coverage/'+baseSHA+')|![Merge Coverage]('+cbadgeURL+'/'+req.params.project+'/coverage/'+mergeSHA+')',
-        '\n|![Base Test]('+cbadgeURL+'/'+req.params.project+'/test/'+baseSHA+')|![Merge Test]('+cbadgeURL+'/'+req.params.project+'/test/'+mergeSHA+')',
-        '\n|![Base Build]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')|![Merge Build]('+cbadgeURL+'/'+req.params.project+'/build/'+mergeSHA+')',
-        '\n|![Base Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')|![Merge Configure]('+cbadgeURL+'/'+req.params.project+'/configure/'+mergeSHA+')'].join();
-
+    //Query GitHub about this pull request
     var options = {
-        url: 'https://api.github.com/repos/'+fullRepoName+'/issues/'+req.body.number+'/comments',
+        url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/pulls/'+req.params.number,
         headers: {
-            'User-Agent': 'CBadge/'+packageJSON.version,
-            'Authorization': authenticate()
-        },
-        body: {
-            body: comment
+            'User-Agent': 'CBadge/'+packageJSON.version
         }
     };
-    request.post(options);
+
+    //Get base SHA and merge SHA
+    request(options, function (error, response, body) {
+        if(error){
+            res.send(500);
+        }else{
+            var pullRequest = JSON.parse(body);
+            var baseSHA = pullRequest.base.sha;
+            var headSHA = pullRequest.head.sha;
+            var testingSHA = req.params.sha;
+
+            //Importing GitHubAPI library
+            var GitHubApi = require('github');
+            var github = new GitHubApi({
+                version: '3.0.0',
+                protocol: 'https',
+                timeout: 5000
+            });
+
+            github.authenticate({
+                type: 'basic',
+                username: 'CBadge',
+                password: process.env.CBADGE_PASSWORD
+            });
+
+            //Generating comment to make
+            var cbadgeURL = process.env.CBADGE_URL;
+            var comment = '| Base ('+baseSHA.substring(0, 7)+') | Merged ('+testingSHA.substring(0, 7)+')|\n|:---:|:---:|\n|[![Base Coverage Status]('+cbadgeURL+'/'+req.params.project+'/coverage/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Coverage Status]('+cbadgeURL+'/'+req.params.project+'/coverage/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Testing Status]('+cbadgeURL+'/'+req.params.project+'/test/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status]('+cbadgeURL+'/'+req.params.project+'/test/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Build Status]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status]('+cbadgeURL+'/'+req.params.project+'/build/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Configure Status]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status]('+cbadgeURL+'/'+req.params.project+'/configure/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)';
+
+            //Now to decide if we need to edit our last comment or make a new one
+            //Were we the last one to make a commit on this pull request?
+            request({
+                url: 'https://api.github.com/repos/'+req.params.owner+'/'+req.params.repo+'/issues/'+req.params.number+'/comments',
+                headers: {
+                    'User-Agent': 'CBadge/'+packageJSON.version
+                }
+            }, function (error, reponse, body) {
+                if(error){
+                    res.send(500);
+                    return;
+                }
+                var comments = JSON.parse(body);
+                if(comments[comments.length-1].user.login == 'CBadge'){
+                    //Yes, we were.  Now let's edit our comment.
+                    console.log('we were the last commenters');
+                    github.issues.editComment({
+                        user: req.params.owner,
+                        repo: req.params.repo,
+                        number: req.params.number,
+                        id: comments[comments.length-1].id,
+                        body: comment
+                    });
+                    console.log('successfully edited comment');
+                    res.send(200);
+                    return;
+                }else{
+                    console.log('we were not the last commenters');
+                    github.issues.createComment({
+                        user: req.params.owner,
+                        repo: req.params.repo,
+                        number: req.params.number,
+                        body: comment
+                    });
+                    console.log('successfully created comment');
+                    res.send(200);
+                    return;
+                }
+            });
+        }
+    });
 });
 
 
@@ -107,23 +146,23 @@ router.get('/:project/coverage/:revision', function(req, res) {
                     coverage[i].locuntested != null &&
                     Number(coverage[i].locuntested)){
 
-                    loctested += coverage[i].loctested;
-                    locuntested += coverage[i].locuntested;
+                    loctested += Number(coverage[i].loctested);
+                    locuntested += Number(coverage[i].locuntested);
                 }
             }
             if(loctested + locuntested > 0){
                 var percent = loctested/(loctested+locuntested);
-                percent = sigFigs(percent, 3);
                 percent *= 100;
+                percent = sigFigs(percent, 3);
                 if(percent > 80){
-                    res.redirect(badge('coverage', percent+'%', 'brightgreen'));
+                    badge(res, 'coverage', percent+'%', 'brightgreen');
                 }else if(percent > 60){
-                    res.redirect(badge('coverage', percent+'%', 'yellow'));
+                    badge(res, 'coverage', percent+'%', 'yellow');
                 }else{
-                    res.redirect(badge('coverage', percent+'%', 'red'));
+                    badge(res, 'coverage', percent+'%', 'red');
                 }
             }else{
-                res.redirect(badge('coverage', 'unknown', 'lightgrey'));
+                badge(res, 'coverage', 'unknown', 'lightgrey');
             }
         }
     });
@@ -154,14 +193,14 @@ router.get('/:project/build/:revision', function(req, res) {
                 }
 
                 if(Number(buildErrors) > 0){
-                    res.redirect(badge('build', buildErrors+' errors', 'red'));
+                    badge(res, 'build', buildErrors+' errors', 'red');
                 }else if(Number(buildWarnings) > 0){
-                    res.redirect(badge('build', buildWarnings+' warnings', 'yellow'));
+                    badge(res, 'build', buildWarnings+' warnings', 'yellow');
                 }else{
-                    res.redirect(badge('build', 'passing', 'brightgreen'));
+                    badge(res, 'build', 'passing', 'brightgreen');
                 }
             }else{
-                res.redirect(badge('build', 'unknown', 'lightgrey'));
+                badge(res, 'build', 'unknown', 'lightgrey');
             }
 
 
@@ -194,14 +233,14 @@ router.get('/:project/configure/:revision', function(req, res) {
                 }
 
                 if(Number(configureErrors) > 0){
-                    res.redirect(badge('configure', configureErrors+' errors', 'red'));
+                    badge(res, 'configure', configureErrors+' errors', 'red');
                 }else if(Number(configureWarnings) > 0){
-                    res.redirect(badge('configure', configureWarnings+' warnings', 'yellow'));
+                    badge(res, 'configure', configureWarnings+' warnings', 'yellow');
                 }else{
-                    res.redirect(badge('configure', 'passing', 'brightgreen'));
+                    badge(res, 'configure', 'passing', 'brightgreen');
                 }
             }else{
-                res.redirect(badge('build', 'unknown', 'lightgrey'));
+                badge(res, 'build', 'unknown', 'lightgrey');
             }
 
 
@@ -215,7 +254,7 @@ router.get('/:project/test/:revision', function(req, res) {
     var request = require('request');
     var badge = require('../helpers/badge');
 
-    request('http://trunk.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
+    request('http://open.cdash.org/api/?method=build&task=revisionstatus&project='+req.params.project+'&revision='+req.params.revision, function (error, response, body) {
         if (error){
             res.send(500);
         }else{
@@ -238,17 +277,17 @@ router.get('/:project/test/:revision', function(req, res) {
 
             if(testsPassed+testsNotRun+testsFailed > 0){
                 var percent = (testsPassed)/(testsPassed+testsNotRun+testsFailed);
-                percent = sigFigs(percent, 3);
                 percent *= 100;
+                percent = sigFigs(percent, 3);
                 if(percent > 80){
-                    res.redirect(badge('tests', percent+'%', 'brightgreen'));
+                    badge(res, 'tests', percent+'%', 'brightgreen');
                 }else if (percent > 60){
-                    res.redirect(badge('tests', percent+'%', 'yellow'));
+                    badge(res, 'tests', percent+'%', 'yellow');
                 }else{
-                    res.redirect(badge('tests', percent+'%', 'red'));
+                    badge(res, 'tests', percent+'%', 'red');
                 }
             }else{
-                res.redirect(badge('tests', 'unknown', 'lightgrey'));
+                badge(res, 'tests', 'unknown', 'lightgrey');
             }
         }
     });
