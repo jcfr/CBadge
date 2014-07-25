@@ -155,14 +155,14 @@ router.get('/:project/coverage/:revision', function(req, res) {
                 percent *= 100;
                 percent = sigFigs(percent, 3);
                 if(percent > 80){
-                    res.redirect(badge('coverage', percent+'%', 'brightgreen'));
+                    badge(res, 'coverage', percent+'%', 'brightgreen');
                 }else if(percent > 60){
-                    res.redirect(badge('coverage', percent+'%', 'yellow'));
+                    badge(res, 'coverage', percent+'%', 'yellow');
                 }else{
-                    res.redirect(badge('coverage', percent+'%', 'red'));
+                    badge(res, 'coverage', percent+'%', 'red');
                 }
             }else{
-                res.redirect(badge('coverage', 'unknown', 'lightgrey'));
+                badge(res, 'coverage', 'unknown', 'lightgrey');
             }
         }
     });
@@ -193,14 +193,14 @@ router.get('/:project/build/:revision', function(req, res) {
                 }
 
                 if(Number(buildErrors) > 0){
-                    res.redirect(badge('build', buildErrors+' errors', 'red'));
+                    badge(res, 'build', buildErrors+' errors', 'red');
                 }else if(Number(buildWarnings) > 0){
-                    res.redirect(badge('build', buildWarnings+' warnings', 'yellow'));
+                    badge(res, 'build', buildWarnings+' warnings', 'yellow');
                 }else{
-                    res.redirect(badge('build', 'passing', 'brightgreen'));
+                    badge(res, 'build', 'passing', 'brightgreen');
                 }
             }else{
-                res.redirect(badge('build', 'unknown', 'lightgrey'));
+                badge(res, 'build', 'unknown', 'lightgrey');
             }
 
 
@@ -233,14 +233,14 @@ router.get('/:project/configure/:revision', function(req, res) {
                 }
 
                 if(Number(configureErrors) > 0){
-                    res.redirect(badge('configure', configureErrors+' errors', 'red'));
+                    badge(res, 'configure', configureErrors+' errors', 'red');
                 }else if(Number(configureWarnings) > 0){
-                    res.redirect(badge('configure', configureWarnings+' warnings', 'yellow'));
+                    badge(res, 'configure', configureWarnings+' warnings', 'yellow');
                 }else{
-                    res.redirect(badge('configure', 'passing', 'brightgreen'));
+                    badge(res, 'configure', 'passing', 'brightgreen');
                 }
             }else{
-                res.redirect(badge('build', 'unknown', 'lightgrey'));
+                badge(res, 'build', 'unknown', 'lightgrey');
             }
 
 
@@ -280,14 +280,14 @@ router.get('/:project/test/:revision', function(req, res) {
                 percent *= 100;
                 percent = sigFigs(percent, 3);
                 if(percent > 80){
-                    res.redirect(badge('tests', percent+'%', 'brightgreen'));
+                    badge(res, 'tests', percent+'%', 'brightgreen');
                 }else if (percent > 60){
-                    res.redirect(badge('tests', percent+'%', 'yellow'));
+                    badge(res, 'tests', percent+'%', 'yellow');
                 }else{
-                    res.redirect(badge('tests', percent+'%', 'red'));
+                    badge(res, 'tests', percent+'%', 'red');
                 }
             }else{
-                res.redirect(badge('tests', 'unknown', 'lightgrey'));
+                badge(res, 'tests', 'unknown', 'lightgrey');
             }
         }
     });
