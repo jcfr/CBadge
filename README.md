@@ -1,6 +1,6 @@
 #CBadge
 
-GitHub badges for CMake/CTest/CDash projects.
+Open source GitHub badges for CMake/CTest/CDash projects.  Fork the repository on [GitHub](http://github.com/brennonbrimhall/CBadge).
 
 
 ##Usage
@@ -10,18 +10,43 @@ GitHub badges for CMake/CTest/CDash projects.
 CBadge generates four badges for GitHub projects that post dashboards to `http://open.cdash.org/`:
   * A configure badge at `http://cbadge-instance/:CDashProjectName/configure/:GitCommitSHA`, like ![Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg).
   * A build badge at `http://cbadge-instance/:CDashProjectName/configure/:GitCommitSHA`, like ![Configure Status](http://img.shields.io/badge/build-passing-brightgreen.svg).
-  * A test badge at `http://cbadge-instance/:CDashProjectName/test/:GitCommitSHA`, like ![Testing Status](http://img.shields.io/badge/tests-failing-red.svg).
+  * A test badge at `http://cbadge-instance/:CDashProjectName/test/:GitCommitSHA`, like ![Testing Status](http://img.shields.io/badge/tests-10%-red.svg).
   * A coverage badge at `http://cbadge-instance/:CDashProjectName/coverage/:GitCommitSHA`, like ![Coverage Status](http://img.shields.io/badge/coverage-60%-yellow.svg).
   * Additionally, you can send CBadge the name of a tag or branch to have it automatically redirect you to the correct SHA by using `http://cbadge-instance/:CDashProjectName/:task/:GitHubRepoOwner/:GitHubRepoName/:tag`.
 
 To add badges to your README.md for you GitHub repository, include them with the following syntax:
 
 ```
-![Configure Status](http://cbadge-instance/:CDashProjectName/configure/:GitHubRepoOwner/:GitHubRepoName/master)
-![Build Status](http://cbadge-instance/:CDashProjectName/build/:GitHubRepoOwner/:GitHubRepoName/master)
+![Configure Status](http://cbadge-instance/:CDashProjectName/configure/:GitHubRepoOwner/:GitHubRepoName/:tag)
+![Build Status](http://cbadge-instance/:CDashProjectName/build/:GitHubRepoOwner/:GitHubRepoName/:tag)
 ![Test Status](http://cbadge-instance/:CDashProjectName/test/:GitHubRepoOwner/:GitHubRepoName/:tag)
 ![Coverage Status](http://cbadge-instance/:CDashProjectName/coverage/:GitHubRepoOwner/:GitHubRepoName/:tag)
 ```
+
+####Pretty Tables
+
+Alternatively, to put them in a nice table format like this:
+
+| Master |
+| :---: |
+|![Configure Status](http://cbadges.com/Remus/configure/robertmaynard/Remus/master)|
+|![Build Status](http://cbadges.com/Remus/build/robertmaynard/Remus/master)|
+|![Test Status](http://cbadges.com/Remus/test/robertmaynard/Remus/master)|
+|![Coverage Status](http://cbadges.com/Remus/coverage/robertmaynard/Remus/master)|
+
+Use this markup:
+
+```
+| Master |
+| :---: |
+|![Configure Status](http://cbadge-instance/:CDashProjectName/configure/:GitHubRepoOwner/:GitHubRepoName/:tag)|
+|![Build Status](http://cbadge-instance/:CDashProjectName/build/:GitHubRepoOwner/:GitHubRepoName/:tag)|
+|![Test Status](http://cbadge-instance/:CDashProjectName/test/:GitHubRepoOwner/:GitHubRepoName/:tag)|
+|![Coverage Status](http://cbadge-instance/:CDashProjectName/coverage/:GitHubRepoOwner/:GitHubRepoName/:tag)|
+
+```
+
+You can easily add columns to the status of other branches or tags, which is useful if you have a workflow that involves a stable master branch and a development branch that gets merged into master.
 
 All badges are served with proper headers to ensure that GitHub doesn't cache them.
 
@@ -37,3 +62,33 @@ Example summary:
 |[![Base Testing Status](http://cbadges.com/Remus/test/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status](http://cbadges.com/Remus/test/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
 |[![Base Build Status](http://cbadges.com/Remus/build/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status](http://cbadges.com/Remus/build/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
 |[![Base Configure Status](http://cbadges.com/Remus/configure/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status](http://cbadges.com/Remus/configure/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
+
+##Installation
+```
+git clone https://github.com/brennonbrimhall/CBadge.git
+cd CBadge
+cd cbadge
+npm install
+```
+
+##Updating
+```
+git pull
+cd CBadge
+cd cbadge
+npm update
+```
+
+##Running
+```
+sudo npm start
+```
+
+To run the CI functionality properly, CBadge needs `CBADGE_URL` and `CBADGE_PASSWORD` to be defined.
+
+```
+sudo CBADGE_URL="http://cbadge-instance" CBADGE_PASSWORD="qwerty" npm start
+```
+
+To run on a different port than 80, just change the port number specified in `/cbadge/bin/www`.  This may let you run CBadge without `sudo`.
+
