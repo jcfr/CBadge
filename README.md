@@ -58,10 +58,10 @@ Example summary:
 
 | Base (9ceac20) | Merged (e3b1423)|
 |:---:|:---:|
-|[![Base Coverage Status](http://cbadges.com/Remus/coverage/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Coverage Status](http://cbadges.com/Remus/coverage/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
-|[![Base Testing Status](http://cbadges.com/Remus/test/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status](http://cbadges.com/Remus/test/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
-|[![Base Build Status](http://cbadges.com/Remus/build/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status](http://cbadges.com/Remus/build/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
-|[![Base Configure Status](http://cbadges.com/Remus/configure/9ceac202d5c6f07b7e00f4ec50c89d19b706f30c)](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status](http://cbadges.com/Remus/configure/e3b14231efa176335fbf684eee9684a98a7d7433)](http://open.cdash.org/index.php?project=Remus)
+|[![Base Coverage Status](http://img.shields.io/badge/coverage-81.20%-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Coverage Status](http://img.shields.io/badge/coverage-84.40%-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)
+|[![Base Testing Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)
+|[![Base Build Status](http://img.shields.io/badge/build-1%20errors-red.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status](http://img.shields.io/badge/build-2%20warnings-yellow.svg)](http://open.cdash.org/index.php?project=Remus)
+|[![Base Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)
 
 ##Installation
 ```
