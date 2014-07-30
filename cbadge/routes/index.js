@@ -60,7 +60,7 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
 		}else{
 			var sha = JSON.parse(body).sha;
 
-			res.redirect('/'+req.params.project+'/'+req.params.action+'/'+sha);
+			res.redirect('/'+req.params.project+'/'+sha+'/'+req.params.action+'.svg');
 		}
 	});
 });
@@ -105,7 +105,7 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res)
 
 			//Generating comment to make
 			var cbadgeURL = process.env.CBADGE_URL;
-			var comment = '| Base ('+baseSHA.substring(0, 7)+') | Merged ('+testingSHA.substring(0, 7)+')|\n|:---:|:---:|\n|[![Base Coverage Status]('+cbadgeURL+'/'+req.params.project+'/coverage/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Coverage Status]('+cbadgeURL+'/'+req.params.project+'/coverage/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Testing Status]('+cbadgeURL+'/'+req.params.project+'/test/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status]('+cbadgeURL+'/'+req.params.project+'/test/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Build Status]('+cbadgeURL+'/'+req.params.project+'/build/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status]('+cbadgeURL+'/'+req.params.project+'/build/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)\n|[![Base Configure Status]('+cbadgeURL+'/'+req.params.project+'/configure/'+baseSHA+')](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status]('+cbadgeURL+'/'+req.params.project+'/configure/'+testingSHA+')](http://open.cdash.org/index.php?project=Remus)';
+			var comment = '| Base ('+baseSHA.substring(0, 7)+') | Merged ('+testingSHA.substring(0, 7)+')|\n|:---:|:---:|\n|[![Base Coverage Status]('+cbadgeURL+'/'+req.params.project+'/'+baseSHA+'/coverage.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Coverage Status]('+cbadgeURL+'/'+testingSHA+'/coverage.svg)](http://open.cdash.org/index.php?project=Remus)\n|[![Base Testing Status]('+cbadgeURL+'/'+baseSHA+'/test.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Testing Status]('+cbadgeURL+'/'+testingSHA+'/test.svg)](http://open.cdash.org/index.php?project=Remus)\n|[![Base Build Status]('+cbadgeURL+'/'+baseSHA+'/build.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status]('+cbadgeURL+'/'+testingSHA+'/build.svg)](http://open.cdash.org/index.php?project=Remus)\n|[![Base Configure Status]('+cbadgeURL+'/'+baseSHA+'/configure.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status]('+cbadgeURL+'/'+testingSHA+'/configure.svg)](http://open.cdash.org/index.php?project=Remus)';
 
 			//Now to decide if we need to edit our last comment or make a new one
 			//Were we the last one to make a commit on this pull request?
@@ -120,7 +120,7 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res)
 					return;
 				}
 				var comments = JSON.parse(body);
-				if(comments[comments.length-1].user.login == 'CBadge'){
+				if(comments[comments.length-1] && comments[comments.length-1].user.login == 'CBadge'){
 					//Yes, we were.  Now let's edit our comment.
 					console.log('we were the last commenters');
 					github.issues.editComment({
@@ -152,7 +152,7 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res)
 
 
 //Get coverage on a per-revision basis
-router.get('/:project/coverage/:revision', function(req, res) {
+router.get('/:project/:revision/coverage.svg', function(req, res) {
 	var request = require('request');
 	var badge = require('../helpers/badge');
 
@@ -194,7 +194,7 @@ router.get('/:project/coverage/:revision', function(req, res) {
 
 
 //Get build status on a per-revision basis
-router.get('/:project/build/:revision', function(req, res) {
+router.get('/:project/:revision/build.svg', function(req, res) {
 	var request = require('request');
 	var badge = require('../helpers/badge');
 
@@ -234,7 +234,7 @@ router.get('/:project/build/:revision', function(req, res) {
 
 
 //Get configure status on a per-revision basis
-router.get('/:project/configure/:revision', function(req, res) {
+router.get('/:project/:revision/configure.svg', function(req, res) {
 	var request = require('request');
 	var badge = require('../helpers/badge');
 
@@ -274,7 +274,7 @@ router.get('/:project/configure/:revision', function(req, res) {
 
 
 //Get test status on a per-revision basis
-router.get('/:project/test/:revision', function(req, res) {
+router.get('/:project/:revision/test.svg', function(req, res) {
 	var request = require('request');
 	var badge = require('../helpers/badge');
 
