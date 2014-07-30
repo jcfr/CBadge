@@ -8,10 +8,10 @@ Open source GitHub badges for CMake/CTest/CDash projects.  Fork the repository o
 ###Badges
 
 CBadge generates four badges for GitHub projects that post dashboards to `http://open.cdash.org/`:
-  * A configure badge at `http://cbadge-instance/:CDashProjectName/configure/:GitCommitSHA`, like ![Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg).
-  * A build badge at `http://cbadge-instance/:CDashProjectName/configure/:GitCommitSHA`, like ![Configure Status](http://img.shields.io/badge/build-passing-brightgreen.svg).
-  * A test badge at `http://cbadge-instance/:CDashProjectName/test/:GitCommitSHA`, like ![Testing Status](http://img.shields.io/badge/tests-10%-red.svg).
-  * A coverage badge at `http://cbadge-instance/:CDashProjectName/coverage/:GitCommitSHA`, like ![Coverage Status](http://img.shields.io/badge/coverage-60%-yellow.svg).
+  * A configure badge at `http://cbadge-instance/:CDashProjectName/:GitCommitSHA/configure.svg`, like ![Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg).
+  * A build badge at `http://cbadge-instance/:CDashProjectName/:GitCommitSHA/configure.svg`, like ![Configure Status](http://img.shields.io/badge/build-passing-brightgreen.svg).
+  * A test badge at `http://cbadge-instance/:CDashProjectName/:GitCommitSHA/test.svg`, like ![Testing Status](http://img.shields.io/badge/tests-10%-red.svg).
+  * A coverage badge at `http://cbadge-instance/:CDashProjectName/:GitCommitSHA/coverage.svg`, like ![Coverage Status](http://img.shields.io/badge/coverage-60%-yellow.svg).
   * Additionally, you can send CBadge the name of a tag or branch to have it automatically redirect you to the correct SHA by using `http://cbadge-instance/:CDashProjectName/:task/:GitHubRepoOwner/:GitHubRepoName/:tag`.
 
 To add badges to your README.md for you GitHub repository, include them with the following syntax:
