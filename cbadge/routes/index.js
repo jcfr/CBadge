@@ -59,6 +59,10 @@ router.get('/:project/:action/:owner/:repo/:tag', function(req, res) {
 			res.send(500);
 		}else{
 			var sha = JSON.parse(body).sha;
+			if(!sha){
+				res.send(500);
+				return;
+			}
 
 			res.redirect('/'+req.params.project+'/'+sha+'/'+req.params.action+'.svg');
 		}
@@ -85,6 +89,10 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res)
 			res.send(500);
 		}else{
 			var pullRequest = JSON.parse(body);
+			if(!pullRequest.base && !pullRequest.head){
+				res.send(500);
+				return;
+			}
 			var baseSHA = pullRequest.base.sha;
 			var headSHA = pullRequest.head.sha;
 			var testingSHA = req.params.sha;
