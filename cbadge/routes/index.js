@@ -159,12 +159,6 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', function(req, res)
 });
 
 
-//Maintain backwards compatibility with old badge urls (/:project/:action/:revision)
-router.get('/:project/:action/:revision', function(req, res) {
-	res.redirect('/'+req.params.project+'/'+req.params.revision+'/'+req.params.action+'.svg');
-});
-
-
 //Get coverage on a per-revision basis
 router.get('/:project/:revision/coverage.svg', function(req, res) {
 	var request = require('request');
@@ -329,6 +323,12 @@ router.get('/:project/:revision/test.svg', function(req, res) {
 			}
 		}
 	});
+});
+
+
+//Maintain backwards compatibility with old badge urls (/:project/:action/:revision)
+router.get('/:project/:action/:revision', function(req, res) {
+	res.redirect('/'+req.params.project+'/'+req.params.revision+'/'+req.params.action+'.svg');
 });
 
 module.exports = router;
