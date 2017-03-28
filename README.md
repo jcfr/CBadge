@@ -112,17 +112,18 @@ npm update
 ## Running
 
 ```
-sudo npm start
+PORT=5000 npm start
 ```
 
 To run the CI functionality properly, CBadge needs `CBADGE_URL` and `CBADGE_PASSWORD` to be defined.
 
 ```
-sudo CBADGE_URL="http://cbadge-instance" CBADGE_PASSWORD="qwerty" npm start
+PORT=5000 CBADGE_URL="http://localhost:$PORT" CBADGE_PASSWORD="qwerty" npm start
 ```
 
-To run on a different port than 80, just change the port number specified in `/cbadge/bin/www`.
-This may let you run CBadge without `sudo`.
+Notes:
+* By default, the server listens on port 80 and this most likely require `sudo`.
+* Default port is specified in `/cbadge/bin/www`.
 
 ## License
 
