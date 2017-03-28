@@ -77,7 +77,13 @@ CBadge can comment on pull requests to inform you of the new builds' status.  At
 that submits to the dashboard, simply issue a GET request to:
 
 ```
-http://cbadge-instance/:CDashProjectName/pullRequest/:GitHubRepoOwner/:GitHubRepoName/:PullRequestNumber/:GitCommitSHA`.  For a Travis-CI build, one could add `curl http://cbadges.com/:CDashProjectName/:GitHubRepoOwner/:GitHubRepoName/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
+http://cbadge-instance/:CDashProjectName/pullRequest/:GitHubRepoOwner/:GitHubRepoName/:PullRequestNumber/:GitCommitSHA`.
+```
+
+For a Travis-CI build, one could add:
+
+```
+curl http://cbadges.com/:CDashProjectName/:GitHubRepoOwner/:GitHubRepoName/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
 ```
 
 Example summary:
