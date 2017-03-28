@@ -118,3 +118,6 @@ sudo CBADGE_URL="http://cbadge-instance" CBADGE_PASSWORD="qwerty" npm start
 To run on a different port than 80, just change the port number specified in `/cbadge/bin/www`.
 This may let you run CBadge without `sudo`.
 
+## License
+
+It is covered by the [MIT License](LICENSE)
