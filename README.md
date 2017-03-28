@@ -42,28 +42,34 @@ Alternatively, to put them in a nice table format like this:
 
 | Master                                                                            |
 |:---------------------------------------------------------------------------------:|
-|![Configure Status](http://cbadges.com/Remus/configure/robertmaynard/Remus/master) |
-|![Build Status](http://cbadges.com/Remus/build/robertmaynard/Remus/master)         |
-|![Test Status](http://cbadges.com/Remus/test/robertmaynard/Remus/master)           |
-|![Coverage Status](http://cbadges.com/Remus/coverage/robertmaynard/Remus/master)   |
+|![Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg) |
+|![Build Status](http://img.shields.io/badge/build-2%20warnings-yellow.svg)         |
+|![Test Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)           |
+|![Coverage Status](http://img.shields.io/badge/coverage-84.40%-brightgreen.svg)    |
 
-Use this markup:
-
-```
-| Master                                                                            |
-|:---------------------------------------------------------------------------------:|
-|![Configure Status](http://cbadges.com/Remus/configure/robertmaynard/Remus/master) |
-|![Build Status](http://cbadges.com/Remus/build/robertmaynard/Remus/master)         |
-|![Test Status](http://cbadges.com/Remus/test/robertmaynard/Remus/master)           |
-|![Coverage Status](http://cbadges.com/Remus/coverage/robertmaynard/Remus/master)   |
+You could use markup similar to:
 
 ```
+| Master                                                                                |
+|:-------------------------------------------------------------------------------------:|
+|![Configure Status](http://cbadge-instance/Remus/configure/robertmaynard/Remus/master) |
+|![Build Status](http://cbadge-instance/Remus/build/robertmaynard/Remus/master)         |
+|![Test Status](http://cbadge-instance/Remus/test/robertmaynard/Remus/master)           |
+|![Coverage Status](http://cbadge-instance/Remus/coverage/robertmaynard/Remus/master)   |
 
-You can easily add columns to the status of other branches or tags, which is useful if you have
-a workflow that involves a stable master branch and a development branch that gets merged into
-master.
+```
 
-All badges are served with proper headers to ensure that GitHub doesn't cache them.
+where:
+ * `CDashProjectName` is `Remus`
+ * `GitHubRepoOwner` is `robertmaynard`
+ * `GitHubRepoName` is `Remus`
+ * `tag` is `master`
+
+You can also easily add columns to the status of other branches or tags, which is useful if you
+have a workflow that involves a stable master branch and a development branch that gets merged
+into master.
+
+All badges are served with proper headers to ensure that GitHub does not cache them.
 
 ### As a CI Summary Tool
 
@@ -77,13 +83,13 @@ http://cbadge-instance/:CDashProjectName/pullRequest/:GitHubRepoOwner/:GitHubRep
 Example summary:
 
 | Base (9ceac20) | Merged (e3b1423)|
-|:-----------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
-|[![Base Coverage Status](http://img.shields.io/badge/coverage-81.20%-brightgreen.svg)][cdash-remus]    |[![Merge Coverage Status](http://img.shields.io/badge/coverage-84.40%-brightgreen.svg)][cdash-remus]    |
-|[![Base Testing Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)][cdash-remus]        |[![Merge Testing Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)][cdash-remus]        |
-|[![Base Build Status](http://img.shields.io/badge/build-1%20errors-red.svg)][cdash-remus]              |[![Merge Build Status](http://img.shields.io/badge/build-2%20warnings-yellow.svg)][cdash-remus]         |
-|[![Base Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)][cdash-remus] |[![Merge Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)][cdash-remus] |
+|:-------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------:|
+|[![Base Coverage Status](http://img.shields.io/badge/coverage-81.20%-brightgreen.svg)][cdash-example]    |[![Merge Coverage Status](http://img.shields.io/badge/coverage-84.40%-brightgreen.svg)][cdash-example]    |
+|[![Base Testing Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)][cdash-example]        |[![Merge Testing Status](http://img.shields.io/badge/test-100.00%-brightgreen.svg)][cdash-example]        |
+|[![Base Build Status](http://img.shields.io/badge/build-1%20errors-red.svg)][cdash-example]              |[![Merge Build Status](http://img.shields.io/badge/build-2%20warnings-yellow.svg)][cdash-example]         |
+|[![Base Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)][cdash-example] |[![Merge Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)][cdash-example] |
 
-[cdash-remus]: http://open.cdash.org/index.php?project=Remus
+[cdash-example]: http://open.cdash.org/index.php?project=Remus
 
 ## Installation
 
