@@ -1,11 +1,11 @@
-#CBadge
+# CBadge
 
 Open source GitHub badges for CMake/CTest/CDash projects.  Fork the repository on [GitHub](http://github.com/brennonbrimhall/CBadge).
 
 
-##Usage
+## Usage
 
-###Badges
+### Badges
 
 CBadge generates four badges for GitHub projects that post dashboards to `http://open.cdash.org/`:
   * A configure badge at `http://cbadge-instance/:CDashProjectName/:GitCommitSHA/configure.svg`, like ![Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg).
@@ -23,7 +23,7 @@ To add badges to your README.md for you GitHub repository, include them with the
 ![Coverage Status](http://cbadge-instance/:CDashProjectName/coverage/:GitHubRepoOwner/:GitHubRepoName/:tag)
 ```
 
-####Pretty Tables
+#### Pretty Tables
 
 Alternatively, to put them in a nice table format like this:
 
@@ -50,7 +50,7 @@ You can easily add columns to the status of other branches or tags, which is use
 
 All badges are served with proper headers to ensure that GitHub doesn't cache them.
 
-###As a CI Summary Tool
+### As a CI Summary Tool
 
 CBadge can comment on pull requests to inform you of the new builds' status.  At the end of a build that submits to the dashboard, simply issue a GET request to `http://cbadge-instance/:CDashProjectName/pullRequest/:GitHubRepoOwner/:GitHubRepoName/:PullRequestNumber/:GitCommitSHA`.  For a Travis-CI build, one could add `curl http://cbadges.com/:CDashProjectName/:GitHubRepoOwner/:GitHubRepoName/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}`.
 
@@ -63,7 +63,9 @@ Example summary:
 |[![Base Build Status](http://img.shields.io/badge/build-1%20errors-red.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Build Status](http://img.shields.io/badge/build-2%20warnings-yellow.svg)](http://open.cdash.org/index.php?project=Remus)
 |[![Base Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)|[![Merge Configure Status](http://img.shields.io/badge/configure-passing-brightgreen.svg)](http://open.cdash.org/index.php?project=Remus)
 
-##Installation
+
+## Installation
+
 ```
 git clone https://github.com/brennonbrimhall/CBadge.git
 cd CBadge
@@ -71,7 +73,8 @@ cd cbadge
 npm install
 ```
 
-##Updating
+## Updating
+
 ```
 git pull
 cd CBadge
@@ -79,7 +82,8 @@ cd cbadge
 npm update
 ```
 
-##Running
+## Running
+
 ```
 sudo npm start
 ```
