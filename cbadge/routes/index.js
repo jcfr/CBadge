@@ -155,7 +155,7 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', (req, res) => {
 
 // Get coverage on a per-revision basis
 router.get('/:project/:revision/coverage.svg', (req, res) => {
-  const query = `http://open.cdash.org/api/?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
+  const query = `http://open.cdash.org/api/v1/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
   get(query, res, (coverage) => {
     let loctested = 0;
     let locuntested = 0;
@@ -188,7 +188,7 @@ router.get('/:project/:revision/coverage.svg', (req, res) => {
 
 // Get build status on a per-revision basis
 router.get('/:project/:revision/build.svg', (req, res) => {
-  const query = `http://open.cdash.org/api/?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
+  const query = `http://open.cdash.org/api/v1/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
   get(query, res, (builds) => {
     let buildErrors = 0;
     let buildWarnings = 0;
@@ -216,7 +216,7 @@ router.get('/:project/:revision/build.svg', (req, res) => {
 
 // Get configure status on a per-revision basis
 router.get('/:project/:revision/configure.svg', (req, res) => {
-  const query = `http://open.cdash.org/api/?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
+  const query = `http://open.cdash.org/api/v1/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
   get(query, res, (builds) => {
     let configureErrors = 0;
     let configureWarnings = 0;
@@ -247,7 +247,7 @@ router.get('/:project/:revision/configure.svg', (req, res) => {
 
 // Get test status on a per-revision basis
 router.get('/:project/:revision/test.svg', (req, res) => {
-  const query = `http://open.cdash.org/api/?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
+  const query = `http://open.cdash.org/api/v1/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
   get(query, res, (builds) => {
     let testsPassed = 0;
     let testsFailed = 0;
