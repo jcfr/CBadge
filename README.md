@@ -131,6 +131,15 @@ Notes:
 * By default, the server listens on port 80 and this most likely require `sudo`.
 * Default port is specified in `/cbadge/bin/www`.
 
+
+## Testing
+
+Static analysis:
+
+```
+npm run-script lint
+```
+
 ## License
 
 It is covered by the [MIT License](LICENSE)
