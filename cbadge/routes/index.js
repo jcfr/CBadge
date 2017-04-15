@@ -11,6 +11,8 @@ const request = require('request');
 
 const router = express.Router();
 
+const SvnIdRegexp = /git-svn-id: http[s]?:\/\/(?:(?:[a-z0-9]+-?)*[a-z0-9]+)(?:\.(?:[a-z0-9]+-?)*[a-z0-9]+)*(?:\.(?:[a-z]{2,}))(?::\d{2,5})?(?:\/[^\s]*)?@([0-9]+)/im;
+
 /* GET home page. */
 router.get('/', (req, res) => {
   marked.setOptions({
@@ -77,7 +79,12 @@ router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
       res.send(500);
       return;
     }
-    res.redirect(`/${req.params.project}/${commit.sha}/${req.params.action}.svg`);
+    let revision = commit.sha;
+    // If 'git-svn-id:' is found, extract svn revision and use it instead
+    if (SvnIdRegexp.test(commit.commit.message)) {
+      revision = SvnIdRegexp.exec(commit.commit.message)[1];
+    }
+    res.redirect(`/${req.params.project}/${revision}/${req.params.action}.svg`);
   });
 });
 
