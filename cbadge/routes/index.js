@@ -5,6 +5,7 @@ const express = require('express');
 const fs = require('fs');
 const GitHubApi = require('github');
 const path = require('path');
+const qs = require('querystring');
 const marked = require('marked');
 const packageJSON = require('../package.json');
 const request = require('request');
@@ -65,6 +66,76 @@ function get(query, res, processData) {
   });
 }
 
+// Get filtered CDash data
+function getFilteredCDashData(req, res, processData) {
+  const params = {
+    project: req.params.project,
+    filtercombine: 'and',
+    filtercount: 1,
+    compare1: 61, // IS
+    field1: 'revision',
+    value1: req.params.revision,
+  };
+  const fields = ['site', 'groupname'];
+  fields.forEach((field) => {
+    if (req.query[field] != null) {
+      params.filtercount += 1;
+      params[`compare${params.filtercount}`] = 61; // IS
+      params[`field${params.filtercount}`] = field;
+      params[`value${params.filtercount}`] = req.query[field];
+    }
+  });
+
+  const cdashApiUrl = req.app.get('cdash_api_url');
+  const queryParams = qs.stringify(params);
+  const url = `${cdashApiUrl}?${queryParams}`;
+
+  get(url, res, processData);
+}
+
+// Get configure or build badge
+function getConfigureOrBuildBadge(req, res, statusName) {
+  getFilteredCDashData(req, res, (data) => {
+    const keys = {
+      configure: {
+        errorKey: 'numconfigureerror',
+        warningKey: 'numconfigurewarning',
+      },
+      build: {
+        errorKey: 'numbuilderror',
+        warningKey: 'numbuildwarning',
+      },
+    };
+
+    const errorKey = keys[statusName].errorKey;
+    const warningKey = keys[statusName].warningKey;
+    const builds = data.buildgroups;
+
+    let errors = 0;
+    let warnings = 0;
+    if (builds.length > 0) {
+      for (let i = 0; i < builds.length; i++) {
+        if (Number(builds[i][errorKey])) {
+          errors += Number(builds[i][errorKey]);
+        }
+        if (Number(builds[i][warningKey])) {
+          warnings += Number(builds[i][warningKey]);
+        }
+      }
+      if (Number(errors) > 0) {
+        badge(res, statusName, `${errors} errors`, 'red');
+      } else if (Number(warnings) > 0) {
+        badge(res, statusName, `${warnings} warnings`, 'yellow');
+      } else {
+        badge(res, statusName, 'passing', 'brightgreen');
+      }
+    } else {
+      badge(res, statusName, 'unknown', 'lightgrey');
+    }
+  });
+}
+
+
 // Get action on a per-branch or tag basis
 router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
   const options = {
@@ -85,7 +156,16 @@ router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
     if (SvnIdRegexp.test(commit.commit.message)) {
       revision = SvnIdRegexp.exec(commit.commit.message)[1];
     }
-    res.redirect(`/${req.params.project}/${revision}/${req.params.action}.svg`);
+    // Forward additional query parameters
+    const params = {};
+    const fields = ['site', 'groupname'];
+    fields.forEach((field) => {
+      if (req.query[field] != null) {
+        params[field] = req.query[field];
+      }
+    });
+    const queryParams = qs.stringify(params);
+    res.redirect(`/${req.params.project}/${revision}/${req.params.action}.svg?${queryParams}`);
   });
 });
 
@@ -163,9 +243,8 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', (req, res) => {
 
 // Get coverage on a per-revision basis
 router.get('/:project/:revision/coverage.svg', (req, res) => {
-  const cdashApiUrl = req.app.get('cdash_api_url');
-  const query = `${cdashApiUrl}/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
-  get(query, res, (coverage) => {
+  getFilteredCDashData(req, res, (data) => {
+    const coverage = data.coverages;
     let loctested = 0;
     let locuntested = 0;
     for (let i = 0; i < coverage.length; i++) {
@@ -197,83 +276,33 @@ router.get('/:project/:revision/coverage.svg', (req, res) => {
 
 // Get build status on a per-revision basis
 router.get('/:project/:revision/build.svg', (req, res) => {
-  const cdashApiUrl = req.app.get('cdash_api_url');
-  const query = `${cdashApiUrl}/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
-  get(query, res, (builds) => {
-    let buildErrors = 0;
-    let buildWarnings = 0;
-    if (builds.length > 0) {
-      for (let i = 0; i < builds.length; i++) {
-        if (Number(builds[i].builderrors)) {
-          buildErrors += Number(builds[i].builderrors);
-        }
-        if (Number(builds[i].buildwarnings)) {
-          buildWarnings += Number(builds[i].buildwarnings);
-        }
-      }
-      if (Number(buildErrors) > 0) {
-        badge(res, 'build', `${buildErrors} errors`, 'red');
-      } else if (Number(buildWarnings) > 0) {
-        badge(res, 'build', `${buildWarnings} warnings`, 'yellow');
-      } else {
-        badge(res, 'build', 'passing', 'brightgreen');
-      }
-    } else {
-      badge(res, 'build', 'unknown', 'lightgrey');
-    }
-  });
+  getConfigureOrBuildBadge(req, res, 'build');
 });
+
 
 // Get configure status on a per-revision basis
 router.get('/:project/:revision/configure.svg', (req, res) => {
-  const cdashApiUrl = req.app.get('cdash_api_url');
-  const query = `${cdashApiUrl}/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
-  get(query, res, (builds) => {
-    let configureErrors = 0;
-    let configureWarnings = 0;
-
-    if (builds.length > 0) {
-      for (let i = 0; i < builds.length; i++) {
-        if (Number(builds[i].configureerrors)) {
-          configureErrors += Number(builds[i].configureerrors);
-        }
-        if (Number(builds[i].configurewarnings)) {
-          configureWarnings += Number(builds[i].configurewarnings);
-        }
-      }
-
-      if (Number(configureErrors) > 0) {
-        badge(res, 'configure', `${configureErrors} errors`, 'red');
-      } else if (Number(configureWarnings) > 0) {
-        badge(res, 'configure', `${configureWarnings} warnings`, 'yellow');
-      } else {
-        badge(res, 'configure', 'passing', 'brightgreen');
-      }
-    } else {
-      badge(res, 'build', 'unknown', 'lightgrey');
-    }
-  });
+  getConfigureOrBuildBadge(req, res, 'configure');
 });
 
 
 // Get test status on a per-revision basis
 router.get('/:project/:revision/test.svg', (req, res) => {
-  const cdashApiUrl = req.app.get('cdash_api_url');
-  const query = `${cdashApiUrl}/index.php?method=build&task=revisionstatus&project=${req.params.project}&revision=${req.params.revision}`;
-  get(query, res, (builds) => {
+  getFilteredCDashData(req, res, (data) => {
+    const builds = data.buildgroups;
     let testsPassed = 0;
     let testsFailed = 0;
     let testsNotRun = 0;
 
     for (let i = 0; i < builds.length; i++) {
-      if (Number(builds[i].testpassed)) {
-        testsPassed += Number(builds[i].testpassed);
+      if (Number(builds[i].numtestpass)) {
+        testsPassed += Number(builds[i].numtestpass);
       }
-      if (Number(builds[i].testfailed)) {
-        testsFailed += Number(builds[i].testfailed);
+      if (Number(builds[i].numtestfail)) {
+        testsFailed += Number(builds[i].numtestfail);
       }
-      if (Number(builds[i].testnotrun)) {
-        testsNotRun += Number(builds[i].testnotrun);
+      if (Number(builds[i].numtestnotrun)) {
+        testsNotRun += Number(builds[i].numtestnotrun);
       }
     }
 

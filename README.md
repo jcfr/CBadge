@@ -41,9 +41,21 @@ To add badges to your README.md for you GitHub repository, include them with the
 ![Coverage Status](http://cbadge-instance/:CDashProjectName/coverage/:GitHubRepoOwner/:GitHubRepoName/:tag)
 ```
 
-#### Pretty Tables
+### Filtering by CDash site and/or group name
 
-Alternatively, to put them in a nice table format like this:
+Specifying `site=name-of-site` and/or `groupname=name-of-group` query arguments allows
+to generate badges considering only a subset of the submissions associated with a specific
+revision:
+
+`http://cbadge-instance/:CDashProjectName/:task/:GitHubRepoOwner/:GitHubRepoName/:tag?site=name-of-site&groupname=name-of-group`
+
+or
+
+`http://cbadge-instance/:CDashProjectName/:GitCommitSHA/:task.svg?site=name-of-site&groupname=name-of-group`
+
+### Pretty Tables
+
+To put them in a nice table format like this:
 
 | Master                                                                            |
 |:---------------------------------------------------------------------------------:|
