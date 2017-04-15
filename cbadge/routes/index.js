@@ -76,7 +76,8 @@ router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
   };
   get(options, res, (commit) => {
     if (!commit.sha) {
-      res.send(500);
+      console.log(`Failed to resolve tag ${req.params.tag}`);
+      badge(res, 'error', 'unknown reference', 'red');
       return;
     }
     let revision = commit.sha;
