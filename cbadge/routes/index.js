@@ -295,9 +295,4 @@ router.get('/:project/:revision/test.svg', (req, res) => {
 });
 
 
-// Maintain backwards compatibility with old badge urls (/:project/:action/:revision)
-router.get('/:project/:action/:revision', (req, res) => {
-  res.redirect(`/${req.params.project}/${req.params.revision}/${req.params.action}.svg`);
-});
-
 module.exports = router;
