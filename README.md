@@ -1,12 +1,12 @@
 # CBadge
 
-Open source GitHub badges for CMake/CTest/CDash projects. Fork the repository on [GitHub](http://github.com/brennonbrimhall/CBadge).
+Open source badges for CMake/CTest/CDash projects. Fork the repository on [GitHub](http://github.com/brennonbrimhall/CBadge).
 
 ## Usage
 
 ### Badges
 
-CBadge generates four badges for GitHub projects that post dashboards to `http://open.cdash.org/`:
+CBadge generates four badges for projects that post dashboards to `http://open.cdash.org/`:
 
 | Badge Type | CBadge URL                                                             | Example                                      |
 |------------|------------------------------------------------------------------------|----------------------------------------------|
@@ -20,12 +20,17 @@ CBadge generates four badges for GitHub projects that post dashboards to `http:/
 [example-test-badge]: http://img.shields.io/badge/tests-10%-red.svg
 [example-coverage-badge]: http://img.shields.io/badge/coverage-60%-yellow.svg
 
-Additionally, you can send CBadge the name of a tag or branch to have it automatically
-redirect you to the correct SHA by using:
+### Badges for GitHub projects
 
-```
-http://cbadge-instance/:CDashProjectName/:task/:GitHubRepoOwner/:GitHubRepoName/:tag`
-```
+For GitHub projects, you can send CBadge the name of a tag or branch to have it
+automatically redirect you to the correct SHA, branch or tag name:
+
+| Badge Type | CBadge URL                                                                                 |
+|------------|--------------------------------------------------------------------------------------------|
+| configure  | `http://cbadge-instance/:CDashProjectName/configure/:GitHubRepoOwner/:GitHubRepoName/:tag` |
+| build      | `http://cbadge-instance/:CDashProjectName/build/:GitHubRepoOwner/:GitHubRepoName/:tag`     |
+| test       | `http://cbadge-instance/:CDashProjectName/test/:GitHubRepoOwner/:GitHubRepoName/:tag`      |
+| coverage   | `http://cbadge-instance/:CDashProjectName/coverage/:GitHubRepoOwner/:GitHubRepoName/:tag`  |
 
 To add badges to your README.md for you GitHub repository, include them with the following syntax:
 
@@ -77,7 +82,7 @@ CBadge can comment on pull requests to inform you of the new builds' status.  At
 that submits to the dashboard, simply issue a GET request to:
 
 ```
-http://cbadge-instance/:CDashProjectName/pullRequest/:GitHubRepoOwner/:GitHubRepoName/:PullRequestNumber/:GitCommitSHA`.
+http://cbadge-instance/:CDashProjectName/pullRequest/:GitHubRepoOwner/:GitHubRepoName/:PullRequestNumber/:GitCommitSHA
 ```
 
 For a Travis-CI build, one could add:
