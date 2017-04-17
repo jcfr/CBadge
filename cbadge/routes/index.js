@@ -86,9 +86,9 @@ function getFilteredCDashData(req, res, processData) {
     }
   });
 
-  const cdashApiUrl = req.app.get('cdash_api_url');
   const queryParams = qs.stringify(params);
-  const url = `${cdashApiUrl}?${queryParams}`;
+  const cdashDefaultHost = `http://${req.params.cdashhost}/api/v1`;
+  const url = `${cdashDefaultHost}?${queryParams}`;
 
   get(url, res, processData);
 }

@@ -6,7 +6,7 @@ const debug = require('debug');
 const app = require('../app');
 
 app.set('port', process.env.PORT || 80);
-app.set('cdash_api_url', process.env.CDASH_API_URL || 'http://open.cdash.org/api/v1');
+app.set('cdash_default_host', process.env.CDASH_DEFAULT_HOST || 'open.cdash.org');
 
 const server = app.listen(app.get('port'), () => {
   debug(`Express server listening on port ${server.address().port}`);

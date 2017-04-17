@@ -145,10 +145,10 @@ PORT=5000 CBADGE_URL="http://localhost:$PORT" CBADGE_PASSWORD="qwerty" npm start
 ```
 
 By default, projects hosted on http://open.cdash.org are used to generate
-the badges. Setting ``CDASH_API_URL`` environment variable allows to change this.
+the badges. Setting ``CDASH_DEFAULT_HOST`` environment variable allows to change this.
 
 ```
-PORT=5000 CDASH_API_URL=http://trunk.cdash.org/api/v1 CBADGE_URL="http://localhost:$PORT" CBADGE_PASSWORD="qwerty" npm start
+PORT=5000 CDASH_DEFAULT_HOST=trunk.cdash.org CBADGE_URL="http://localhost:$PORT" CBADGE_PASSWORD="qwerty" npm start
 ```
 
 Notes:
