@@ -157,15 +157,15 @@ router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
       revision = SvnIdRegexp.exec(commit.commit.message)[1];
     }
     // Forward additional query parameters
-    const params = {};
+    const queryParameters = {};
     const fields = ['site', 'groupname'];
     fields.forEach((field) => {
       if (req.query[field] != null) {
-        params[field] = req.query[field];
+        queryParameters[field] = req.query[field];
       }
     });
-    const queryParams = qs.stringify(params);
-    res.redirect(`/${req.params.project}/${revision}/${req.params.action}.svg?${queryParams}`);
+    const queryParameterString = qs.stringify(queryParameters);
+    res.redirect(`/${req.params.cdashhost}/${req.params.project}/${revision}/${req.params.action}.svg?${queryParameterString}`);
   });
 });
 
