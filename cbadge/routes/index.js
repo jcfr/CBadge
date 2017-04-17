@@ -135,9 +135,14 @@ function getConfigureOrBuildBadge(req, res, statusName) {
   });
 }
 
-
 // Get action on a per-branch or tag basis
 router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
+  const cdashDefaultHost = req.app.get('cdash_default_host');
+  res.redirect(`/${cdashDefaultHost}/${req.params.project}/${req.params.action}/${req.params.owner}/${req.params.repo}/${req.params.tag}`);
+});
+
+// Get action on a per-branch or tag basis
+router.get('/:cdashhost/:project/:action/:owner/:repo/:tag', (req, res) => {
   const options = {
     url: `https://api.github.com/repos/${req.params.owner}/${req.params.repo}/commits/${req.params.tag}`,
     headers: {
@@ -168,7 +173,6 @@ router.get('/:project/:action/:owner/:repo/:tag', (req, res) => {
     res.redirect(`/${req.params.cdashhost}/${req.params.project}/${revision}/${req.params.action}.svg?${queryParameterString}`);
   });
 });
-
 
 // Notify CBadge to comment on a pull request for information, or update previous comment.
 router.get('/:project/pullRequest/:owner/:repo/:number/:sha', (req, res) => {
@@ -240,9 +244,14 @@ router.get('/:project/pullRequest/:owner/:repo/:number/:sha', (req, res) => {
   });
 });
 
-
 // Get coverage on a per-revision basis
 router.get('/:project/:revision/coverage.svg', (req, res) => {
+  const cdashDefaultHost = req.app.get('cdash_default_host');
+  res.redirect(`/${cdashDefaultHost}/${req.params.project}/${req.params.revision}/coverage.svg`);
+});
+
+// Get coverage on a per-revision basis
+router.get('/:cdashhost/:project/:revision/coverage.svg', (req, res) => {
   getFilteredCDashData(req, res, (data) => {
     const coverage = data.coverages;
     let loctested = 0;
@@ -273,21 +282,36 @@ router.get('/:project/:revision/coverage.svg', (req, res) => {
   });
 });
 
-
 // Get build status on a per-revision basis
 router.get('/:project/:revision/build.svg', (req, res) => {
+  const cdashDefaultHost = req.app.get('cdash_default_host');
+  res.redirect(`/${cdashDefaultHost}/${req.params.project}/${req.params.revision}/build.svg`);
+});
+
+// Get build status on a per-revision basis
+router.get('/:cdashhost/:project/:revision/build.svg', (req, res) => {
   getConfigureOrBuildBadge(req, res, 'build');
 });
 
-
 // Get configure status on a per-revision basis
 router.get('/:project/:revision/configure.svg', (req, res) => {
+  const cdashDefaultHost = req.app.get('cdash_default_host');
+  res.redirect(`/${cdashDefaultHost}/${req.params.project}/${req.params.revision}/configure.svg`);
+});
+
+// Get configure status on a per-revision basis
+router.get('/:cdashhost/:project/:revision/configure.svg', (req, res) => {
   getConfigureOrBuildBadge(req, res, 'configure');
 });
 
-
 // Get test status on a per-revision basis
 router.get('/:project/:revision/test.svg', (req, res) => {
+  const cdashDefaultHost = req.app.get('default_cdash_host');
+  res.redirect(`/${cdashDefaultHost}/${req.params.project}/${req.params.revision}/test.svg`);
+});
+
+// Get test status on a per-revision basis
+router.get('/:cdashhost/:project/:revision/test.svg', (req, res) => {
   getFilteredCDashData(req, res, (data) => {
     const builds = data.buildgroups;
     let testsPassed = 0;

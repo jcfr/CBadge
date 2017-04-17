@@ -114,6 +114,27 @@ Example summary:
 
 [cdash-example]: http://open.cdash.org/index.php?project=Remus
 
+### Alternative CDash server
+
+By default, projects hosted on http://open.cdash.org are used to generate
+the badges.
+
+This can be changed by prepending the CDash host name:
+
+```
+http://cbadge-instance/:CDashHost/:CDashProjectName/:GitCommitSHA/:task.svg
+```
+
+or
+
+```
+http://cbadge-instance/:CDashHost/:CDashProjectName/:task/:GitHubRepoOwner/:GitHubRepoName/:tag
+```
+
+Starting the server setting the `CDASH_DEFAULT_HOST` environment variable
+allows to change the default CDash server used for all generated badges.
+
+
 ## Installation
 
 ```
